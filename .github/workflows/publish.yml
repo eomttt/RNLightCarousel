@@ -36,5 +36,5 @@ jobs:
 
       - name: Deploy
         uses: JS-DevTools/npm-publish@v1
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_PUBLISH_KEY}}
+        with:
+          token: ${{secrets.NPM_PUBLISH_KEY}}
