@@ -8,7 +8,8 @@ or
 
 ## Usage
 
-![](https://im4.ezgif.com/tmp/ezgif-4-a2d9267e35f9.gif)
+![](https://user-images.githubusercontent.com/22593217/109741073-b3edec80-7c0f-11eb-83e0-599bcb30df73.gif)
+![](https://user-images.githubusercontent.com/22593217/109741063-b18b9280-7c0f-11eb-9efd-764ed60093a6.gif)
 
 ```tsx
   interface CarouselCardType {
