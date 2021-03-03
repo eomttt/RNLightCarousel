@@ -1,10 +1,10 @@
 # RNLightCarousel
 
 ## Install
-> yarn add RNLightCarousel
+> yarn add react-native-light-carousel
 
 or
-> npm install RNLightCarousel
+> npm i react-native-light-carousel
 
 ## Usage
 
