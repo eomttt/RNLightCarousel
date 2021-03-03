@@ -18,13 +18,13 @@ or
   }
 
   interface CarouselProps {
-    style?: StyleProp<ViewStyle>;
-    countStyle?: StyleProp<ViewStyle>;
+    style?: StyleProp<ViewStyle>; // Carousel list wrapper style
+    countStyle?: StyleProp<ViewStyle>; // Carousel count style
     autoPlay?: boolean; // Default false
     autoPlayTime?: number; // Default 3000
     items: CarouselCardType[];
-    carouselWidth: number;
-    carouselGap: number;
+    carouselWidth: number; // 하단 그림 참조
+    carouselGap: number; // 하단 그림 참조
     onPress?: (params?: CarouselCardType, index?: number) => void;
   }
 
@@ -37,8 +37,6 @@ or
   />
 ```
 
-## 참고
+![](https://user-images.githubusercontent.com/22593217/109735857-c6aff380-7c06-11eb-9d4a-e6bebe360c78.png)
 
-![](https://maruzzing.github.io/images/rn_carousel_01.png)
-
-[참고 블로그](https://maruzzing.github.io/study/rnative/React-Native-%EC%BA%90%EB%9F%AC%EC%85%80(carousel)-%EB%A7%8C%EB%93%A4%EA%B8%B0/)
+## [참고](https://maruzzing.github.io/study/rnative/React-Native-%EC%BA%90%EB%9F%AC%EC%85%80(carousel)-%EB%A7%8C%EB%93%A4%EA%B8%B0/)
