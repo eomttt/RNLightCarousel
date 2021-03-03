@@ -18,6 +18,7 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org/
 
       - name: Set up node_modules cache
         uses: actions/cache@v2
@@ -35,6 +36,6 @@ jobs:
         run: yarn build
 
       - name: Deploy
-        uses: JS-DevTools/npm-publish@v1
-        with:
-          token: ${{secrets.NPM_PUBLISH_KEY}}
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_PUBLISH_KEY}}

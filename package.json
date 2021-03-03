@@ -1,6 +1,6 @@
 {
   "name": "react-native-light-carousel",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
