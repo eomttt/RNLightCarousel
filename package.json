@@ -1,7 +1,6 @@
 {
   "name": "RNLightCarousel",
   "version": "0.0.1",
-  "private": true,
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
@@ -43,5 +42,16 @@
       "json",
       "node"
     ]
-  }
+  },
+  "keywords": [
+    "react",
+    "react native",
+    "carousel",
+    "simple carousel"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eomttt/RNLightCarousel"
+  },
+  "homepage": "https://github.com/eomttt/RNLightCarousel"
 }
