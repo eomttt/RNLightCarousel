@@ -20,10 +20,12 @@ const MINIMUM_ITEMS = 2;
 interface CarouselProps {
   style?: StyleProp<ViewStyle>;
   countStyle?: StyleProp<ViewStyle>;
+  autoPlay?: boolean;
+  autoPlayTime?: number;
   items: CarouselCardType[];
   carouselWidth: number;
   carouselGap: number;
-  onPress: (params?: CarouselCardType, index?: number) => void;
+  onPress?: (params?: CarouselCardType, index?: number) => void;
 }
 
 const useLoopItems = (
@@ -78,6 +80,8 @@ export const Carousel = ({
   items,
   carouselWidth,
   carouselGap,
+  autoPlay,
+  autoPlayTime = AUTOPLAY_TIME,
   onPress,
 }: CarouselProps) => {
   const carouselRef = useRef<FlatList<any>>();
@@ -187,9 +191,15 @@ export const Carousel = ({
         setFowardScroll();
         carouselAnim.setValue(0);
       });
-    }, AUTOPLAY_TIME);
+    }, autoPlayTime);
     setAutoplayTimeout(timer);
-  }, [autoplayTimeout, carouselAnim, scrollIndex, setFowardScroll]);
+  }, [
+    autoPlayTime,
+    autoplayTimeout,
+    carouselAnim,
+    scrollIndex,
+    setFowardScroll,
+  ]);
 
   const stopAutoplay = useCallback(() => {
     clearTimeout(autoplayTimeout);
@@ -233,7 +243,7 @@ export const Carousel = ({
           width={carouselWidth}
           interval={carouselGap / 2}
           active={index === scrollIndex}
-          onPress={() => onPress(item, index)}
+          onPress={() => onPress?.(item, index)}
         />
       </AnimatedView>
     ),
@@ -248,11 +258,11 @@ export const Carousel = ({
   );
 
   useEffect(() => {
-    if (!scrolling) {
+    if (!scrolling && autoPlay) {
       startAutoplay();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, scrolling]);
+  }, [page, scrolling, autoPlay]);
 
   return (
     <View style={[styles.wrapper, style]}>

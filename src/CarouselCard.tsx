@@ -17,8 +17,9 @@ interface CarouselCardProps {
 }
 
 export interface CarouselCardType {
-  landingUrl: string;
-  imageUrl: string;
+  landingUrl?: string;
+  imageUrl?: string;
+  backgroundColor?: string;
 }
 
 export const CarouselCard = ({
@@ -30,7 +31,7 @@ export const CarouselCard = ({
   onPress,
 }: CarouselCardProps) => {
   const fadeAnim = useRef(new Animated.Value(active ? 0 : 0.5));
-  const styles = getStyles(width, interval);
+  const styles = getStyles(width, interval, item?.backgroundColor);
   const onPressItem = useCallback(() => onPress?.(item), [onPress, item]);
 
   useEffect(() => {
@@ -52,11 +53,13 @@ export const CarouselCard = ({
     <TouchableWithoutFeedback onPress={onPressItem}>
       <View style={styles.shape}>
         <View style={styles.imageWrapper}>
-          <Image
-            key={item?.landingUrl}
-            style={styles.image}
-            source={{uri: item.imageUrl}}
-          />
+          {!!item.imageUrl && (
+            <Image
+              key={item?.landingUrl}
+              style={styles.image}
+              source={{uri: item.imageUrl}}
+            />
+          )}
           <Animated.View style={[styles.overlay, overlayStyle]} />
           {!init && <View style={styles.init} />}
         </View>
@@ -65,7 +68,11 @@ export const CarouselCard = ({
   );
 };
 
-export const getStyles = (width: number, interval: number) =>
+export const getStyles = (
+  width: number,
+  interval: number,
+  backgroundColor?: string,
+) =>
   StyleSheet.create({
     image: {
       height: '100%',
@@ -76,6 +83,7 @@ export const getStyles = (width: number, interval: number) =>
       height: width * 0.66,
       overflow: 'hidden',
       width: '100%',
+      backgroundColor,
     },
     init: {
       bottom: 0,
