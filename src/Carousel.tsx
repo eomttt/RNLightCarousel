@@ -4,6 +4,7 @@ import {
   FlatList,
   NativeScrollEvent,
   NativeSyntheticEvent,
+  Platform,
   StyleProp,
   StyleSheet,
   Text,
@@ -16,6 +17,8 @@ import {CarouselCard, CarouselCardType} from './CarouselCard';
 const AUTOPLAY_TIME = 3000;
 const AUTOPLAY_DRAG_TIME = 300;
 const MINIMUM_ITEMS = 2;
+
+const isAndroid = () => Platform.OS === 'android';
 
 interface CarouselProps {
   style?: StyleProp<ViewStyle>;
@@ -91,7 +94,8 @@ export const Carousel = ({
   const [scrollIndex, setScrollIndex] = useState(0);
   const [initLayout, setInitLayout] = useState(false);
   const [scrolling, setScrolling] = useState(false);
-  const carouselAnim = useRef(new Animated.Value(0)).current;
+  const fowardAnim = useRef(new Animated.Value(0)).current;
+  const backwardAnim = useRef(new Animated.Value(0)).current;
 
   const snapInterval = useMemo(() => carouselWidth + carouselGap, [
     carouselGap,
@@ -117,16 +121,24 @@ export const Carousel = ({
     () => ({
       transform: [
         {
-          translateX: carouselAnim.interpolate({
+          translateX: fowardAnim.interpolate({
             inputRange: [0, 1],
             // 초기 렌더링시에 array가 0 -> scrollIndex 로 이동하는데, 덜컥거리는 문제가 있어서
             // 초기 렌더링 전에는 transform 하여 덜컥거리는 효과를 방지해본다 ㅠㅠ
-            outputRange: [initLayout ? 0 : -snapInterval, -carouselWidth],
+            outputRange: [initLayout ? 0 : -snapInterval, -snapInterval],
+          }),
+        },
+        {
+          // 안드로이드에서 드래그 스크롤시에 깜빡이는 문제가 있는데 애니메이션으로 눈속임이 가능 ㅎㅎ
+          // 헌데 foward animation만 있어서 backward animation 도 추가
+          translateX: backwardAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, snapInterval],
           }),
         },
       ],
     }),
-    [carouselAnim, initLayout, snapInterval, carouselWidth],
+    [fowardAnim, backwardAnim, initLayout, snapInterval],
   );
 
   const onLayout = useCallback(() => {
@@ -163,6 +175,20 @@ export const Carousel = ({
     });
   }, [itemsLen]);
 
+  const fowardScrollAnim = useCallback(
+    (duration: number) => {
+      Animated.timing(fowardAnim, {
+        duration,
+        toValue: 1,
+        useNativeDriver: true,
+      }).start(() => {
+        setFowardScroll();
+        fowardAnim.setValue(0);
+      });
+    },
+    [fowardAnim, setFowardScroll],
+  );
+
   const setBackwardScroll = useCallback(() => {
     setData((prev) => {
       const item = prev.slice(-1)[0];
@@ -177,29 +203,30 @@ export const Carousel = ({
     });
   }, [itemsLen]);
 
+  const backwardScrollAnim = useCallback(
+    (duration: number) => {
+      Animated.timing(backwardAnim, {
+        duration,
+        toValue: 1,
+        useNativeDriver: true,
+      }).start(() => {
+        setBackwardScroll();
+        backwardAnim.setValue(0);
+      });
+    },
+    [backwardAnim, setBackwardScroll],
+  );
+
   const startAutoplay = useCallback(() => {
     clearTimeout(autoplayTimeout);
     const timer = setTimeout(() => {
       carouselRef.current?.scrollToIndex({
         index: scrollIndex,
       });
-      Animated.timing(carouselAnim, {
-        duration: AUTOPLAY_DRAG_TIME,
-        toValue: 1,
-        useNativeDriver: true,
-      }).start(() => {
-        setFowardScroll();
-        carouselAnim.setValue(0);
-      });
+      fowardScrollAnim(AUTOPLAY_DRAG_TIME);
     }, autoPlayTime);
     setAutoplayTimeout(timer);
-  }, [
-    autoPlayTime,
-    autoplayTimeout,
-    carouselAnim,
-    scrollIndex,
-    setFowardScroll,
-  ]);
+  }, [autoPlayTime, autoplayTimeout, scrollIndex, fowardScrollAnim]);
 
   const stopAutoplay = useCallback(() => {
     clearTimeout(autoplayTimeout);
@@ -211,27 +238,48 @@ export const Carousel = ({
     stopAutoplay();
   }, [stopAutoplay]);
 
+  const moveScrollAndroid = useCallback(
+    (isFowardScroll: boolean) => {
+      if (isFowardScroll) {
+        fowardScrollAnim(10);
+      } else {
+        backwardScrollAnim(10);
+      }
+    },
+    [backwardScrollAnim, fowardScrollAnim],
+  );
+
+  const moveScroll = useCallback(
+    (isFowardScroll: boolean) => {
+      if (isFowardScroll) {
+        setFowardScroll();
+      } else {
+        setBackwardScroll();
+      }
+    },
+    [setBackwardScroll, setFowardScroll],
+  );
+
   const onScrollEndDrag = useCallback(
     ({nativeEvent}: NativeSyntheticEvent<NativeScrollEvent>) => {
       const {contentOffset} = nativeEvent;
       const index = Math.floor(contentOffset.x / snapInterval);
-
-      // 정방향 스크롤
-      if (index >= scrollIndex) {
-        setFowardScroll();
-      } else {
-        // 역방향 스크롤
-        setBackwardScroll();
-      }
+      const isFowardScroll = index >= scrollIndex;
 
       carouselRef.current?.scrollToIndex({
         animated: false,
         index: scrollIndex,
       });
 
+      if (isAndroid()) {
+        moveScrollAndroid(isFowardScroll);
+      } else {
+        moveScroll(isFowardScroll);
+      }
+
       setScrolling(false);
     },
-    [scrollIndex, snapInterval, setBackwardScroll, setFowardScroll],
+    [snapInterval, scrollIndex, moveScrollAndroid, moveScroll],
   );
 
   const renderItem = useCallback(
@@ -276,7 +324,7 @@ export const Carousel = ({
         data={data}
         decelerationRate="fast"
         horizontal
-        keyExtractor={(item: any, index) => `${index}`}
+        keyExtractor={(item: any) => `${item.id}`}
         pagingEnabled
         renderItem={renderItem}
         initialNumToRender={itemsLen}
@@ -285,7 +333,8 @@ export const Carousel = ({
         onLayout={onLayout}
         showsHorizontalScrollIndicator={false}
         onScrollBeginDrag={onScrollBeginDrag}
-        onScrollEndDrag={onScrollEndDrag}
+        onScrollEndDrag={isAndroid() ? undefined : onScrollEndDrag}
+        onMomentumScrollEnd={isAndroid() ? onScrollEndDrag : undefined}
       />
       <View style={[styles.shape, countStyle]}>
         <Text style={styles.text}>
